@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta http-equiv="Cache-Control" content="no-store" />
+<head>
+    <meta charset="UTF-8">
+    <title>Schendule</title>
+    <link th:rel="stylesheet" th:href="@{webjars/bootstrap/4.0.0-2/css/bootstrap.min.css} "/>
+</head>
+<body>
+<div class="container">
+    <h2 class="h2 text-center">Jobs</h2>
+    <table class="table table-borderless">
+        <thead>
+        <tr>
+            <th class="col-6">Description</th>
+            <th class="col">Next time to run</th>
+            <th class="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="job : ${jobs}">
+
+            <td th:text="${job.description}"></td>
+            <td th:text="${job.localDateTime}"></td>
+            <td>
+
+                <form action="#" th:action="@{/viewJob}" th:object="${jobDTO}" method="post">
+                    <input type="hidden" th:value="${job.jobName}" name="jobName">
+                    <input type="hidden" th:value="${job.jobGroup}" name="jobGroup">
+                    <button type="submit" class="btn btn-info">View details</button>
+                </form>
+
+            </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td>
+                <a href="/addJob" class="btn btn-primary">Add Job</a>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
+
+</div>
+</body>
+</html>
