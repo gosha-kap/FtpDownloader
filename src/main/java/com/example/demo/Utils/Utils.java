@@ -14,6 +14,20 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 
 public class Utils {
 
+    public static void printFileDetails(FTPFile[] files) {
+        long totalSize = 0;
+        int count = 0;
+        for (FTPFile file : files) {
+            count++;
+            totalSize += file.getSize();
+        }
+        double resultSize = totalSize / 1024 / 1024;
+        String result = String.format("%.2f", resultSize);
+        double averangeSize = resultSize / count;
+        String result2 = String.format("%.2f", averangeSize);
+        String out =("Total " + count + " file(s)" + ", total size:" + result + "Mb, avarange size:" + result2 + "Mb.");
+    }
+
 
     public static Map<String, Long> getListFiles(List<FTPFile> files, String postFix) {
         Map<String, Long> downloadedFiles = new HashMap<>();

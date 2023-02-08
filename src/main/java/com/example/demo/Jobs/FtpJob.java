@@ -1,8 +1,7 @@
 package com.example.demo.Jobs;
 
 import com.example.demo.Utils.Utils;
-import com.example.demo.ftp.FtpClient;
-import com.example.demo.ftp.Sender;
+import com.example.demo.clients.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,7 +24,7 @@ public class FtpJob extends QuartzJobBean {
 
     private static Logger logger = LoggerFactory.getLogger(FtpJob.class);
     private Messadge messadge = new Messadge();
-    private final long NEXT_TRIGGER_EXECUTE = 5L; // next time executions if failed in minutes
+    private final long NEXT_TRIGGER_EXECUTE = 15L; // next time executions if failed in minutes
     private  File rootDir;
     private  List<File> dirsInRoot;
 
@@ -40,16 +39,42 @@ public class FtpJob extends QuartzJobBean {
         String telegramKey = jobDataMap.getString("telegramKey");
         String chatId = jobDataMap.getString("chatId");
 
-        FtpClient ftpClient = new FtpClient(ip, 21, login, pass);
+       // Connection ftpConnection = jobDataMap.get()
+
+        Credention credention = (Credention) jobDataMap.get("credentials");
+        FtpSettings settings = (FtpSettings) jobDataMap.get("settings");
+
+
+
+
+       try {
+            MyClient client = new FtpClient(credention,settings);
+            client.connect();
+            client.downLoad();
+            client.close();
+
+
+        } catch (IOException e) {
+            throw new RuntimeException("Connection error.");
+        }
+
+
+
+        ///////////////////////////////////////
+
+        FtpClientOLD ftpClient = new FtpClientOLD(ip, 21, login, pass,100);
         this.rootDir = new File(dir);
         this.dirsInRoot =  Arrays.asList(Objects.requireNonNull(rootDir.listFiles()));
+
+
+
 
         try {
             logger.info("Connecting...");
             ftpClient.open();
-            FTPFile[] dirs = ftpClient.getFtpFiles(ftpClient.getDirectory());
             //Process folders
-            for (FTPFile folder : dirs) {
+            for (FTPFile folder : ftpClient.getFtpFiles(ftpClient.getDirectory())) {
+               // folder.
                 String folderName = folder.getName();
                 logger.info("Process folder: " + folderName);
                 //Create folder on storadge if not exist

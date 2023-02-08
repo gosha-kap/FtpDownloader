@@ -1,10 +1,7 @@
-package com.example.demo.ftp;
+package com.example.demo.clients;
 
 import org.apache.commons.net.PrintCommandListener;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
+import org.apache.commons.net.ftp.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,40 +10,49 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class FtpClient {
+public class FtpClientOLD {
 
+    private static Logger logger = LogManager.getLogger(FtpClientOLD.class);
     private final String server;
     private final int port;
     private final String user;
     private final String password;
 
+    private int dataTimeOut;
     private String directory;
     private FTPClient ftp;
 
-    private static Logger logger = LogManager.getLogger(FtpClient.class);
-
-
-    public FtpClient(String server, int port, String user, String password) {
+    public FtpClientOLD(String server, int port, String user, String password, int dataTimeOut  ) {
         this.server = server;
         this.port = port;
         this.user = user;
         this.password = password;
+        this.dataTimeOut = dataTimeOut;
+        ftp = new FTPClient();
+        File log = new File(directory + "/logFtp.log");
+        if (!log.exists()) {
+            try {
+                log.createNewFile();
+            } catch (IOException e) {
+                logger.error("Can't create log application file.");
+            }
+        }
+        try {
+            ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(new FileOutputStream(log))));
+        } catch (FileNotFoundException e) {
+            logger.error("Can't add protocol command listener.");
+        }
+        ftp.setDataTimeout(dataTimeOut);
     }
 
     public void open() throws IOException {
 
-        ftp = new FTPClient();
 
-        File log = new File("Y:/Logs/" + Thread.currentThread().getName() + "_ftp.log");
-        if (!log.exists())
-            log.createNewFile();
-        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(new FileOutputStream(log))));
-        ftp.setDataTimeout(15000);
         ftp.connect(server, port);
-
         int reply = ftp.getReplyCode();
         if (!FTPReply.isPositiveCompletion(reply)) {
             ftp.disconnect();
+            logger.error("Can't connect to ftp server");
             throw new IOException("Exception in connecting to FTP Server");
         }
         ftp.login(user, password);
@@ -66,19 +72,7 @@ public class FtpClient {
         return ftp.listFiles(path);
     }
 
-    public static void printFileDetails(FTPFile[] files) {
-        long totalSize = 0;
-        int count = 0;
-        for (FTPFile file : files) {
-            count++;
-            totalSize += file.getSize();
-        }
-        double resultSize = totalSize / 1024 / 1024;
-        String result = String.format("%.2f", resultSize);
-        double averangeSize = resultSize / count;
-        String result2 = String.format("%.2f", averangeSize);
-        logger.info("Total " + count + " file(s)" + ", total size:" + result + "Mb, avarange size:" + result2 + "Mb.");
-    }
+
 
 
     public void downloadFile(FTPFile file, FTPFile folder, String absolutePath) throws IOException {

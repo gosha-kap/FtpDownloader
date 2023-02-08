@@ -39,7 +39,6 @@ public class JobDetailDTO {
 
     private LocalTime localTime;
 
-
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dateTime;
 

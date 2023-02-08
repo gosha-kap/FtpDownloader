@@ -132,7 +132,7 @@ public class ShcenduleController {
 
     private JobDataMap buildJobDataMap(JobDetailDTO jobDetailDTO) {
         JobDataMap dataMap = new JobDataMap();
-        dataMap.put("ip", jobDetailDTO.getIp());
+               dataMap.put("ip", jobDetailDTO.getIp());
         dataMap.put("login", jobDetailDTO.getLogin());
         dataMap.put("pass", jobDetailDTO.getPassword());
         dataMap.put("description", jobDetailDTO.getDescription());
@@ -188,10 +188,10 @@ public class ShcenduleController {
         Map<String, LocalDateTime> timers = new HashMap<>();
         List<Trigger> triggers = getAllTriggersKey(jobKey);
         triggers.forEach(x -> {
-            if (x.getDescription().equals(REGULAR)) {
+            if (x.getDescription().equals(REGULAR) && Objects.nonNull(x.getNextFireTime())) {
                 timers.put(REGULAR, convertToLocalDateTime(x.getNextFireTime()));
             }
-            if (x.getDescription().equals(ONCE)) {
+            if (x.getDescription().equals(ONCE) && Objects.nonNull(x.getNextFireTime())) {
                 timers.put(ONCE, convertToLocalDateTime(x.getNextFireTime()));
             }
         });

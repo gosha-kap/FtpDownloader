@@ -1,4 +1,4 @@
-package com.example.demo.ftp;
+package com.example.demo.clients;
 
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
