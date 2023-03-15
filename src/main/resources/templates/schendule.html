@@ -20,8 +20,9 @@
         <tbody>
         <tr th:each="job : ${jobs}">
 
-            <td th:text="${job.description}"></td>
-            <td th:text="${job.localDateTime}"></td>
+
+            <td th:text="${job.description}+', '+${job.address}+', '+${job.type}+' type.'" ></td>
+            <td th:text="${#temporals.format(job.localDateTime, 'dd MMM  HH:mm')}"></td>
             <td>
 
                 <form action="#" th:action="@{/viewJob}" th:object="${jobDTO}" method="post">

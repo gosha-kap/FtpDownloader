@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Cache-Control" content="no-store"/>
 <head>
     <meta charset="UTF-8">
     <title>Add Job</title>
@@ -15,62 +15,219 @@
         <input type="hidden" th:value="${jobDetailDTO.jobName}" name="jobName">
         <input type="hidden" th:value="${jobDetailDTO.jobGroup}" name="jobGroup">
 
+        <!--Description-->
+        <div class="p-2 bg-light border m-2">
+            <div class="row">
+                <div class="col">
+                    <p><strong>Description:</strong></p>
+                </div>
 
-        <div class="form-group">
-            <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" th:field="*{description}" id="description"></textarea>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Alias" aria-label="Alias" th:field="*{alias}"
+                           id="alias">
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Address" aria-label="Address"
+                           th:field="*{address}" id="address">
+                </div>
+            </div>
+        </div>
+
+        <!--Credentions-->
+        <div class="p-2 bg-light border m-2">
+            <div class="row">
+                <div class="col">
+                    <p><strong>Credentions:</strong></p>
+                </div>
+            </div>
+
+            <div class="row p-1">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="ip address" aria-label="ip address"
+                           th:field="*{ip}" id="ip">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="port" aria-label="port"
+                           th:field="*{port}" id="port">
+                </div>
+            </div>
+
+            <div class="row p-1">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Login" aria-label="Login"
+                           th:field="*{login}" id="login">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Password" aria-label="Password"
+                           th:field="*{password}" id="password">
+                </div>
+            </div>
         </div>
 
 
-        <div class="form-group">
-            <label for="ip" class="form-label">ip Address</label>
-            <input type="text" class="form-control" th:field="*{ip}" id="ip">
+        <!--Common Settings-->
+        <div class="p-2 bg-light border m-2">
+            <div class="row">
+                <div class="col">
+                    <p><strong>Settings:</strong></p>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Save Folder" aria-label="Alias"
+                           th:field="*{saveFolder}" id="saveFolder">
+
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Number of tries to connect"
+                           aria-label="Number of tries to connect"
+                           th:field="*{numOfTries}" id="numOfTries">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-check  m-2">
+                        <input class="form-check-input" type="checkbox" value="" id="repeatLater"
+                               th:field="*{repeatLater}">
+                        <label class="form-check-label" for="repeatLater">
+                            Repeat, if fails:
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Next time run, in minutes"
+                           aria-label="Next time run, in minutes" disabled
+                           th:field="*{nextTimeRun}" id="nextTimeRun" value="">
+
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Number of next time hops"
+                           aria-label="Number of next time hops" disabled
+                           th:field="*{numOfRepeats}" id="numOfRepeats" value="">
+                </div>
+            </div>
+
+
+            <div class="row m-2">
+                <div class="col">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type" id="ftp" value="FTP" th:checked="${jobDetailDTO.getType().equals('FTP')}">
+                        <label class="form-check-label" for="ftp">
+                            FTP
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type" id="hiwatch" value="HiWatch" th:checked="${jobDetailDTO.getType().equals('HiWatch')}">
+                        <label class="form-check-label" for="hiwatch">
+                            HiWatch
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Data Timeout in miliseconds"
+                           aria-label="Data Timeout in millisecond(1000ms = 1s)" disabled
+                           th:field="*{dataTimeOut}" id="dataTimeOut">
+
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Channel "
+                           aria-label="Channel" disabled
+                           th:field="*{channel}" id="channel">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="File postfix"
+                           aria-label="File postfix" disabled
+                           th:field="*{filePostfix}" id="filePostfix">
+
+                </div>
+                <div class="col">
+                    <input type="datetime-local" class="form-control"  disabled
+                           th:field="*{from}" id="from">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+
+                </div>
+                <div class="col">
+                    <input type="datetime-local" class="form-control"  disabled
+                           th:field="*{to}" id="to">
+                </div>
+            </div>
+        </div>
+        <!--Once or Regular-->
+        <div class="p-2 bg-white border m-2">
+            <div class="row">
+                 <div class="col">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="jobStart" id="onceChoice" value="once" checked>
+                        <label class="form-check-label" for="onceChoice">
+                            Once time execute
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="jobStart" id="regularChoice" value="regular">
+                        <label class="form-check-label" for="regularChoice">
+                            Regular run
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <input type="datetime-local" class="form-control" disabled
+                           th:field="*{once}" id="once">
+
+                </div>
+                <div class="col">
+                    <input type="time" class="form-control" disabled
+                           th:field="*{regular}" id="regular">
+                </div>
+            </div>
+        </div>
+        <!-- Telegram Settings-->
+        <div class="p-2 bg-white m-2">
+            <div class="row">
+                <div class="col">
+                    <p><strong>Telegram alarms chat:</strong></p>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col m-10">
+                    <input type="text" class="form-control" placeholder="Telegram key"
+                           aria-label="Telegram key" th:field="*{telegramKey}" id="telegramKey">
+
+                </div>
+                <div class="col m-10">
+                    <input type="text" class="form-control" placeholder="Chat id"
+                           aria-label="Chat id"
+                           th:field="*{chatId}" id="chatId">
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="login" class="form-label">Login</label>
-            <input type="text" class="form-control" th:field="*{login}" id="login">
+        <div class="bg-white">
+            <div class="text-center">
+                <input class="btn btn-primary" type="submit" value="Save Job">
+            </div>
         </div>
 
 
-        <div class="form-group">
-            <label for="password" class="form-label">Password</label>
-            <input type="text" class="form-control" th:field="*{password}" id="password">
-        </div>
-
-        <div class="form-group">
-            <label class="checkbox-inline">
-                <input type="checkbox"  data-toggle="toggle" id="everyDay" > Every day timer:
-            </label>
-
-            <input type="time"  class="form-control" th:field="*{localTime}"  disabled>
-        </div>
-
-        <div class="form-group">
-            <label class="checkbox-inline">
-                <input type="checkbox"  data-toggle="toggle" id="once"> Once time:
-            </label>
-
-            <input th:type="datetime-local" class="form-control"  th:field="*{dateTime}" disabled>
-        </div>
-
-        <div class="form-group">
-            <label for="path" class="form-label">Path to save:</label>
-            <input type="text" class="form-control" th:field="*{path}" id="path">
-        </div>
-
-        <div class="form-group">
-            <label for="telegramKey" class="form-label">Telegram Bot Key:</label>
-            <input type="text" class="form-control" th:field="*{telegramKey}" id="telegramKey">
-        </div>
-
-        <div class="form-group">
-            <label for="chatId" class="form-label">ChatId:</label>
-            <input type="text" class="form-control" th:field="*{chatId}" id="chatId">
-        </div>
-
-
-        <input class="btn btn-primary" type="submit" value="Save Job">
     </form>
 </div>
 <script src="/js/actions.js"></script>

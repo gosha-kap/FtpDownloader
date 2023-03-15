@@ -47,7 +47,6 @@ public class Utils {
         File dir = new File(rootDir.getAbsolutePath() + "/" + path);
         return dir.mkdir();
     }
-
     public static boolean areEqual(Map<String, Long> first, Map<String, Long> second) {
 
         if (first.size() != second.size()) {
@@ -56,8 +55,6 @@ public class Utils {
         return first.entrySet().stream()
                 .allMatch(e -> e.getValue().equals(second.get(e.getKey())));
     }
-
-
     public static void createTrigger(JobExecutionContext context, long next_trigger_execute) {
         Scheduler scheduler = context.getScheduler();
         JobDetail jobDetail = context.getJobDetail();

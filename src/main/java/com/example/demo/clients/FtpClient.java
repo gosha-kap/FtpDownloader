@@ -1,6 +1,9 @@
 package com.example.demo.clients;
 
 
+import com.example.demo.settings.Credention;
+import com.example.demo.settings.FtpSettings;
+import com.example.demo.settings.Settings;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
@@ -21,13 +24,14 @@ public class FtpClient implements MyClient<FTPFile> {
     private String filePostfix;
 
 
-    public FtpClient(Credention credention, FtpSettings settings) throws IOException {
+    public FtpClient(Credention credention, Settings settings) throws IOException {
         this.credention = credention;
         this.saveFolder = settings.getSaveFolder();
         this.ftp = new FTPClient();
-        this.ftp.setDataTimeout(settings.getDataTimeOut());
-        this.filePostfix = settings.getFilePostfix();
-        this.settings = settings;
+        this.settings = (FtpSettings)settings;
+        this.ftp.setConnectTimeout  (this.settings.getDataTimeOut());
+        this.filePostfix = this.settings.getFilePostfix();
+
     }
 
     @Override
@@ -59,9 +63,9 @@ public class FtpClient implements MyClient<FTPFile> {
     }
 
     public List<FTPFile> getFilesFromPath(String dir) {
-        FTPFile[] files = null;
+        FTPFile[] files;
         try {
-            files = (FTPFile[]) ftp.listFiles(dir);
+            files = ftp.listFiles(dir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -119,12 +123,10 @@ public class FtpClient implements MyClient<FTPFile> {
             outputStream.close();
             inputStream.close();
         }
-
     }
-
-
     @Override
     public void close() throws IOException {
+
         if (ftp.isConnected()) {
             ftp.logout();
             ftp.disconnect();

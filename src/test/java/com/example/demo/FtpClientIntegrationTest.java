@@ -1,14 +1,17 @@
 package com.example.demo;
 
 
-import com.example.demo.clients.Credention;
+import com.example.demo.settings.Credention;
 import com.example.demo.clients.FtpClient;
-import com.example.demo.clients.FtpSettings;
+import com.example.demo.settings.FtpSettings;
 import com.example.demo.clients.MyClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.ExpectedException;
 import org.mockftpserver.fake.FakeFtpServer;
 import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
@@ -23,6 +26,7 @@ public class FtpClientIntegrationTest {
 
     private FakeFtpServer fakeFtpServer;
     private MyClient ftpConnection;
+
 
     @BeforeEach
     public  void setup() throws IOException {
@@ -49,14 +53,14 @@ public class FtpClientIntegrationTest {
 
     @AfterEach
     public void teardown() throws IOException {
-        ftpConnection.close();
-        fakeFtpServer.stop();
+         fakeFtpServer.stop();
     }
 
     @Test
-    public void getListFiles(){
+    public void getListFiles() throws IOException {
         List<FTPFile> files = ftpConnection.getFilesFromRoot();
                   assertThat(files.size() == 6);
+        ftpConnection.close();
     }
 
     @Test
@@ -64,10 +68,13 @@ public class FtpClientIntegrationTest {
         ftpConnection.downLoad();
         List<FTPFile> files = ftpConnection.getFilesFromRoot();
         assertThat(files.size() == 3);
+        ftpConnection.close();
     }
 
     @Test
-    public void downloadfolders(){
+    public void closeConnection() throws IOException{
+        fakeFtpServer.stop();
+        Assertions.assertThrows(RuntimeException.class,()->ftpConnection.downLoad());
 
     }
  }

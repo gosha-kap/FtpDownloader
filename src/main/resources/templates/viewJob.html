@@ -1,72 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Cache-Control" content="no-store"/>
 <head>
     <meta charset="UTF-8">
     <title>Job Detail</title>
     <link th:rel="stylesheet" th:href="@{webjars/bootstrap/4.0.0-2/css/bootstrap.min.css} "/>
 </head>
 <body>
-<div class="container">
+<div class="container w-50">
     <h2 class="h2 text-center">Job Detail</h2>
-<table class="table table-borderless">
-    <tr>
-        <td >Description</td>
-        <td th:text="${jobDatail.getDescription()}"></td>
-    </tr>
-    <tr>
-        <td>Ip Address</td>
-        <td th:text="${jobDatail.getIp()}"></td>
-    </tr>
-    <tr>
-        <td>Login</td>
-        <td th:text="${jobDatail.getLogin()}"></td>
-    </tr>
-     <tr>
-        <td>Ftp password</td>
-        <td th:text="${jobDatail.getPassword()}"></td>
-    </tr>
-    <tr>
-        <td>Regular time execution </td>
-        <td th:text="${jobDatail.getLocalTime()}"></td>
-    </tr>
-    <tr>
-        <td>Once time execution </td>
-        <td th:text="${jobDatail.getDateTime()}"></td>
-    </tr>
+    <table class="table text-left">
+        <tr>
+            <th class="text-left">Description</th>
+        </tr>
+        <tr>
+            <td th:text="'Alias: '+${jobDatail.getAlias()}"></td>
+        </tr>
+        <tr>
+            <td th:text="'Address: '+${jobDatail.getAddress()}"></td>
+        </tr>
+        <tr>
+            <th class="text-left">Credentials</th>
+        </tr>
+        <tr>
+            <td th:text="'Ip address: '+${jobDatail.getIp()}+':'+${jobDatail.getPort()}"></td>
+        </tr>
+        <tr>
+            <td th:text="'Login and password:  '+${jobDatail.getLogin()}+' : '+${jobDatail.getPassword()}"></td>
+        </tr>
+        <tr>
+            <th class="text-left" th:text="${jobDatail.getType()}"></th>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getType() == 'HiWatch'}" th:text="'Channel: ' + ${jobDatail.getChannel()}"></td>
+            <td th:if="${jobDatail.getType() == 'FTP'}" th:text="'File type: ' + ${jobDatail.getFilePostfix()}"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getType() == 'HiWatch'} and ${jobDatail.getFrom() != null} and ${jobDatail.getTo() != null}"
+                th:text="'From ' + ${#temporals.format(jobDatail.getFrom(), 'dd MMM  HH:mm')}+' to '+${#temporals.format(jobDatail.getTo(), 'dd MMM  HH:mm')}"></td>
+            <td th:if="${jobDatail.getType() == 'FTP'}" th:text="'DataTimeout: ' + ${jobDatail.getDataTimeOut()}"></td>
+        </tr>
+        <tr>
+            <th class="text-left">Settings</th>
+        </tr>
+        <tr>
+            <td th:text="'Path to save: '+${jobDatail.getSaveFolder()}"></td>
+        </tr>
+        <tr>
+            <td th:text="'Num of tries to connect: '+${jobDatail.getNumOfTries()}"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.isRepeatLater()}"
+                th:text="'Repeat '+${jobDatail.getNumOfRepeats()}+' time(s) with interval '+${jobDatail.getNextTimeRun()}+' minute(s).'"></td>
+        </tr>
+        <tr>
+            <th class="text-left">Timers</th>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getOnce()} == null and ${jobDatail.getRegular()} == null"
+                th:text="'No timers.'"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getOnce() != null}" th:text="'One run timer: ' +${#temporals.format(jobDatail.getOnce(), 'dd MMM  HH:mm')}"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getRegular() != null}" th:text="'Regular run: ' + ${jobDatail.getRegular()}"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getTelegramKey() != ''}"
+                th:text="'Telegram key: ' + ${jobDatail.getTelegramKey()}"></td>
+        </tr>
+        <tr>
+            <td th:if="${jobDatail.getChatId() != '' }" th:text="'Chat Id: ' + ${jobDatail.getChatId()}"></td>
+        </tr>
+        <tr>
+            <td>
+                <form action="#" th:action="@{/editJob}" th:object="${jobDTO}" method="post">
+                    <input type="hidden" th:value="${jobDatail.getJobName()}" name="jobName">
+                    <input type="hidden" th:value="${jobDatail.getJobGroup()}" name="jobGroup">
+                    <button type="submit" class="btn btn-success">Edit</button>
+                </form>
+            </td>
+            <td>
 
-    <tr>
-        <td>Path to save:</td>
-        <td th:text="${jobDatail.getPath()}"></td>
-    </tr>
+                <form action="#" th:action="@{/delJob}" th:object="${jobDTO}" method="post">
+                    <input type="hidden" th:value="${jobDatail.getJobName()}" name="jobName">
+                    <input type="hidden" th:value="${jobDatail.getJobGroup()}" name="jobGroup">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
 
-    <tr>
-        <td>Telegram Bot Key:</td>
-        <td th:text="${jobDatail.getTelegramKey()}"></td>
-    </tr>
 
-    <tr>
-        <td>ChatId:</td>
-        <td th:text="${jobDatail.getChatId()}"></td>
-    </tr>
-    <tr>
-        <td>
-            <form action="#"  th:action="@{/editJob}"  th:object="${jobDTO}"   method="post">
-                <input type="hidden" th:value = "${jobDatail.jobName}" name ="jobName">
-                <input type="hidden"  th:value = "${jobDatail.jobGroup}"  name = "jobGroup">
-                <button type="submit"  class="btn btn-success" >Edit</button>
-            </form>
-        </td>
-        <td>
-            <form action="#"  th:action="@{/delJob}"  th:object="${jobDTO}"   method="post">
-                <input type="hidden" th:value = "${jobDatail.jobName}" name ="jobName">
-                <input type="hidden"  th:value = "${jobDatail.jobGroup}"  name = "jobGroup">
-                <button type="submit"  class="btn btn-danger">Delete</button>
-            </form>
-        </td>
-    </tr>
-
-</table>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

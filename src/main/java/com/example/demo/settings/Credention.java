@@ -1,10 +1,12 @@
-package com.example.demo.clients;
+package com.example.demo.settings;
 
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public  class Credention
+public  class Credention implements Serializable
 {
     private  String server;
     private  int port;
@@ -15,7 +17,6 @@ public  class Credention
         this.server = server;
         this.user = user;
         this.password = password;
-        this.port = 21;
-    }
+        }
 }
 

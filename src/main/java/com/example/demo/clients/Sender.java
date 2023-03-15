@@ -1,5 +1,6 @@
 package com.example.demo.clients;
 
+import com.example.demo.settings.TelegramCredention;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.ParseMode;
@@ -16,9 +17,9 @@ public class Sender {
         return telegramBot;
     }
 
-    public Sender(String botToken, String chatId){
-        telegramBot = new TelegramBot(botToken);
-        this.chatId = chatId;
+    public Sender(TelegramCredention telegramSettings){
+        telegramBot = new TelegramBot(telegramSettings.getTelegramKey());
+        this.chatId = telegramSettings.getChatId();
     }
     public void sendTextMessage(  String text) {
         SendMessage request = new SendMessage(chatId, text)
