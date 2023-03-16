@@ -75,7 +75,6 @@ public class DownloadJob extends QuartzJobBean {
             CacheSettings.delete(jobkey);
         }
 
-
         TelegramCredention telegramSettings = settings.getTelegramCredention();
         if (Objects.nonNull(telegramSettings)) {
             if (messadge.isHasErrors()) {
@@ -83,7 +82,6 @@ public class DownloadJob extends QuartzJobBean {
             } else
                 new Sender(telegramSettings).sendTextMessage(description.getAlias() + ": Ftp download completed.\n");
         }
-
     }
     @Getter
     @NoArgsConstructor

@@ -31,7 +31,7 @@ public class FtpClientIntegrationTest {
     @BeforeEach
     public  void setup() throws IOException {
         fakeFtpServer = new FakeFtpServer();
-        Credention credention = new Credention("localhost","user","password");
+        Credention credention = new Credention("10.10.10.10","user","password");
 
         fakeFtpServer.addUserAccount(new UserAccount(credention.getUser(), credention.getPassword(), "/data"));
         UnixFakeFileSystem fileSystem = new UnixFakeFileSystem();
