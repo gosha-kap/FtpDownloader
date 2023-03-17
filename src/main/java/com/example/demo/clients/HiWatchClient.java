@@ -44,6 +44,7 @@ public class HiWatchClient implements MyClient {
 
     @Override
     public void connect() throws IOException {
+        //Using login check//
     }
 
     @Override

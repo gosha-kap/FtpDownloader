@@ -41,6 +41,8 @@
                 <div class="col">
                     <p><strong>Credentions:</strong></p>
                 </div>
+
+
             </div>
 
             <div class="row p-1">
@@ -63,6 +65,7 @@
                     <input type="text" class="form-control" placeholder="Password" aria-label="Password"
                            th:field="*{password}" id="password">
                 </div>
+
             </div>
         </div>
 
@@ -116,13 +119,15 @@
             <div class="row m-2">
                 <div class="col">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="type" id="ftp" value="FTP" th:checked="${jobDetailDTO.getType().equals('FTP')}">
+                        <input class="form-check-input" type="radio" name="type" id="ftp" value="FTP"
+                               th:checked="${jobDetailDTO.getType().equals('FTP')}">
                         <label class="form-check-label" for="ftp">
                             FTP
                         </label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="type" id="hiwatch" value="HiWatch" th:checked="${jobDetailDTO.getType().equals('HiWatch')}">
+                        <input class="form-check-input" type="radio" name="type" id="hiwatch" value="HiWatch"
+                               th:checked="${jobDetailDTO.getType().equals('HiWatch')}">
                         <label class="form-check-label" for="hiwatch">
                             HiWatch
                         </label>
@@ -152,7 +157,7 @@
 
                 </div>
                 <div class="col">
-                    <input type="datetime-local" class="form-control"  disabled
+                    <input type="datetime-local" class="form-control" disabled
                            th:field="*{from}" id="from">
                 </div>
             </div>
@@ -162,7 +167,7 @@
 
                 </div>
                 <div class="col">
-                    <input type="datetime-local" class="form-control"  disabled
+                    <input type="datetime-local" class="form-control" disabled
                            th:field="*{to}" id="to">
                 </div>
             </div>
@@ -170,9 +175,10 @@
         <!--Once or Regular-->
         <div class="p-2 bg-white border m-2">
             <div class="row">
-                 <div class="col">
+                <div class="col">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="jobStart" id="onceChoice" value="once" checked>
+                        <input class="form-check-input" type="radio" name="jobStart" id="onceChoice" value="once"
+                               checked>
                         <label class="form-check-label" for="onceChoice">
                             Once time execute
                         </label>
@@ -221,15 +227,36 @@
             </div>
         </div>
 
-        <div class="bg-white">
-            <div class="text-center">
-                <input class="btn btn-primary" type="submit" value="Save Job">
+        <div class="bg-white text-center">
+
+            <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#constatus">Connect</button>
+            <input class="btn btn-info" type="button" value="Files">
+            <input class="btn btn-primary" type="submit" value="Save Job">
+        </div>
+      </form>
+</div>
+<!--Modal-->
+<div class="modal fade" id="constatus" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Unknown.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
             </div>
         </div>
-
-
-    </form>
+    </div>
 </div>
+
+
+
 <script src="/js/actions.js"></script>
 </body>
 </html>

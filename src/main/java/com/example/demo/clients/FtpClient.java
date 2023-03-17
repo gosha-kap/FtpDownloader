@@ -16,18 +16,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 public class FtpClient implements MyClient<FTPFile> {
-
     private Credention credention;
     private FTPClient ftp;
     private FtpSettings settings;
     private String saveFolder;
     private String workDirectory;
     private String filePostfix;
-
     private static Logger logger = LoggerFactory.getLogger(FtpClient.class);
-
 
     public FtpClient(Credention credention, Settings settings) throws IOException {
         this.credention = credention;
@@ -36,9 +32,7 @@ public class FtpClient implements MyClient<FTPFile> {
         this.settings = (FtpSettings)settings;
         this.ftp.setConnectTimeout  (this.settings.getDataTimeOut());
         this.filePostfix = this.settings.getFilePostfix();
-
     }
-
     @Override
     public void connect() throws IOException {
         ftp.connect(credention.getServer(), credention.getPort());
@@ -46,28 +40,25 @@ public class FtpClient implements MyClient<FTPFile> {
         if (!FTPReply.isPositiveCompletion(reply)) {
             ftp.disconnect();
             logger.error("Exception in connecting to FTP Server: " + reply + " code.");
-
         }
         ftp.login(credention.getUser(), credention.getPassword());
         ftp.enterLocalPassiveMode();
         ftp.setFileType(settings.getFileType());
         this.workDirectory = ftp.printWorkingDirectory();
     }
-
     @Override
     public void downLoad() throws IOException {
         List<FTPFile> folders = getFilesFromRoot();
-
         for (FTPFile folder : folders) {
             if (folder.isDirectory()) {
                 List<FTPFile> files = getFilesFromPath(workDirectory.concat("/").concat(folder.getName()));
                 for (FTPFile file : files) {
+                    logger.info("Process folder: "+file.getName()+".");
                     downLoadFile(folder.getName(), file);
                 }
             }
         }
     }
-
     public List<FTPFile> getFilesFromPath(String dir) {
         FTPFile[] files;
         try {
@@ -77,12 +68,10 @@ public class FtpClient implements MyClient<FTPFile> {
         }
         return Arrays.stream(files).collect(Collectors.toList());
     }
-
     @Override
     public List<FTPFile> getFilesFromRoot() {
         return getFilesFromPath(workDirectory);
     }
-
 
     public void downLoadFile(String proccessFolder, FTPFile pathFile) throws IOException {
 
@@ -90,20 +79,21 @@ public class FtpClient implements MyClient<FTPFile> {
             return;
 
         File localFolder = new File(saveFolder.concat(proccessFolder));
-        File localFile = new File(saveFolder.concat(proccessFolder).concat("/").concat(pathFile.getName()));
+        File localFile = new File(saveFolder.concat("/").concat(proccessFolder).concat("/").concat(pathFile.getName()));
         String remotePathFile = workDirectory.concat("/").concat(proccessFolder).concat("/").concat(pathFile.getName());
-        logger.info("Process "+remotePathFile);
+        logger.info("Process file :"+pathFile.getName());
 
         if (!localFolder.exists())
             localFolder.mkdir();
         boolean exists = localFile.exists();
         long length = localFile.length();
-        logger.info("Remote file size: "+length);
+        logger.info("Remote file size: "+pathFile.getSize());
         if (exists && length == pathFile.getSize()) {
-            logger.info("File is already exists , skipping.");
+            logger.info("File is already exists.");
+            deleteFile(remotePathFile,proccessFolder);
             return;
         } else if (exists) {
-            logger.info("File is continued to downloading.");
+            logger.info("File is continued to downloading. Local file size:"+ (int)(length/pathFile.getSize()*100)+"%.");
             ftp.setRestartOffset(length);
         } else {
 
@@ -126,11 +116,7 @@ public class FtpClient implements MyClient<FTPFile> {
 
             if (localFile.length() == pathFile.getSize()) {
                 logger.info("Downloading file completed.");
-                ftp.deleteFile(remotePathFile);
-                if (ftp.listFiles(workDirectory.concat(proccessFolder)).length == 0){
-                    logger.info("Removing folder "+proccessFolder+" from "+workDirectory+".");
-                    ftp.removeDirectory(workDirectory.concat(proccessFolder));
-                }
+                deleteFile(remotePathFile,proccessFolder);
 
             } else
                 logger.error("File error downloading: after downloading size is not coinside.");
@@ -138,6 +124,15 @@ public class FtpClient implements MyClient<FTPFile> {
             logger.error("File error downloading: compliting command wrong");
             outputStream.close();
             inputStream.close();
+        }
+    }
+
+    public void deleteFile(String remotePathFile, String proccessFolder) throws IOException {
+        logger.info("Deleting file: "+remotePathFile+".");
+        ftp.deleteFile(remotePathFile);
+        if (ftp.listFiles(workDirectory.concat("/").concat(proccessFolder)).length == 0){
+            logger.info("Removing folder "+proccessFolder+" from "+workDirectory+".");
+            ftp.removeDirectory(workDirectory.concat("/").concat(proccessFolder));
         }
     }
     @Override

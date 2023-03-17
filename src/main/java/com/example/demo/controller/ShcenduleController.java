@@ -47,6 +47,7 @@ public class ShcenduleController {
         if (jobDetailDTO.getJobName() != null && jobDetailDTO.getJobGroup() != null) {
             JobKey jobKey = jobKey(jobDetailDTO.getJobName(), jobDetailDTO.getJobGroup());
             scheduler.deleteJob(jobKey);
+            jobRepeatService.remove(jobKey.toString());
         }
         JobDetail jobDetail = buildJob(jobDetailDTO);
         // Add two triggers
@@ -123,7 +124,7 @@ public class ShcenduleController {
     }
 
     private JobDetail buildJob(JobDetailDTO jobDetailDTO) throws SchedulerException {
-        JobKey jobKey = new JobKey(UUID.randomUUID().toString(), jobDetailDTO.getType());
+        JobKey jobKey = new JobKey(jobDetailDTO.getAlias(), jobDetailDTO.getType());
         JobDataMap jobDataMap = buildJobDataMap(jobDetailDTO, jobKey);
         return JobBuilder.newJob(DownloadJob.class).withIdentity(jobKey)
                 .withDescription(jobDetailDTO.getAlias())
@@ -200,6 +201,7 @@ public class ShcenduleController {
             settings.setNumOfTries(jobDetailDTO.getNumOfTries());
         else
             settings.setNumOfTries(1);
+        //* Save repeat settings in db , because jobmap can be change between tries*//
         if (jobDetailDTO.isRepeatLater() && Objects.nonNull(jobDetailDTO.getNextTimeRun()) && Objects.nonNull(jobDetailDTO.getNumOfRepeats())  ) {
             ExSettings exSettings = new ExSettings(jobKey.toString(),
                     true, Long.valueOf(jobDetailDTO.getNextTimeRun()), jobDetailDTO.getNumOfRepeats());
@@ -255,15 +257,16 @@ public class ShcenduleController {
         if (Objects.nonNull(settings)) {
             jobDetail.setSaveFolder(settings.getSaveFolder());
             jobDetail.setNumOfTries(settings.getNumOfTries());
-            ExSettings exSettings = CacheSettings.get(jobKey.toString());
-            if (Objects.isNull(exSettings)) {
-                exSettings = jobRepeatService.getByJobKey(jobKey.toString());
-            }
+            // ** We can take values from working Cache, we take from DB **//
+            //TODO//
+            // cache db responces//
+            ExSettings exSettings =  jobRepeatService.getByJobKey(jobKey.toString());
             if (Objects.nonNull(exSettings)) {
                 jobDetail.setRepeatLater(exSettings.getRepeatLater());
                 jobDetail.setNextTimeRun(exSettings.getNextTimeRun().intValue());
                 jobDetail.setNumOfRepeats(exSettings.getNumOfRepeats());
             }
+
             if (type.equals(ClientType.FTP)) {
                 FtpSettings ftpSettings = (FtpSettings) settings;
                 jobDetail.setDataTimeOut(ftpSettings.getDataTimeOut());

@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
  public class CacheSettings {
     private static final Map<String, ExSettings> map = new ConcurrentHashMap<>();
 
-
     public static ExSettings save(ExSettings settings){
          return map.put(settings.getJobId(), settings);
     }
