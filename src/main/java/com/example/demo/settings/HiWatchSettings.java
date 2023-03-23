@@ -12,5 +12,6 @@ public class HiWatchSettings extends Settings{
     private int searchResultPosition = 0;
     private LocalDateTime from;
     private LocalDateTime to;
+    private boolean timeShift;
 
 }

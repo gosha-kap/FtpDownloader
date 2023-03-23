@@ -84,14 +84,13 @@ public class HiWatchClient implements MyClient {
 
     @Override
     public void downLoad() throws IOException {
-        Pattern pattern = Pattern.compile("starttime=(\\d{8})T(\\d{6})Z.*name=(\\d*).*size=(\\d*)");
+        Pattern pattern = Pattern.compile("starttime=(\\d{8})T(\\d{6})Z.*name=(.*)&.*size=(\\d*)");
         List<String> xmlListOfRecords = getFilesFromRoot();
         for (String xmlRequest : xmlListOfRecords) {
             Matcher matcher = pattern.matcher(xmlRequest);
             if (matcher.find()) {
                 String date = matcher.group(1);
-                String time = matcher.group(2);
-                Long size = Long.parseLong(matcher.group(4))+ ADD_HEADER;
+                 Long size = Long.parseLong(matcher.group(4))+ ADD_HEADER;
                 String folderName = date.substring(0, 4) + "-" + date.substring(4, 6) + "-" + date.substring(6, 8);
                 String fileName = matcher.group(3);
                 File localFolder = new File(saveFolder.concat("/").concat(folderName));

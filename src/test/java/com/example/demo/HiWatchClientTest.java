@@ -24,6 +24,7 @@ public class HiWatchClientTest {
     public void setup() throws IOException {
 
         Credention credention = new Credention("192.168.100.16", "admin", "Gosh@183");
+        credention.setPort(80);
         HiWatchSettings settings = new HiWatchSettings();
         settings.setSaveFolder(TestData.saveFolder);
         settings.setChannel(201);

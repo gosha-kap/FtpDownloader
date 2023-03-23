@@ -24,7 +24,7 @@ import java.util.*;
 
 @Slf4j
 @PersistJobDataAfterExecution
-public class DownloadJob extends QuartzJobBean {
+public class DownloadJob extends QuartzJobBean implements InterruptableJob {
 
     private static Logger logger = LoggerFactory.getLogger(DownloadJob.class);
 
@@ -83,6 +83,12 @@ public class DownloadJob extends QuartzJobBean {
                 new Sender(telegramSettings).sendTextMessage(description.getAlias() + ": Ftp download completed.\n");
         }
     }
+
+    @Override
+    public void interrupt() throws UnableToInterruptJobException {
+
+    }
+
     @Getter
     @NoArgsConstructor
     public class Messadge {

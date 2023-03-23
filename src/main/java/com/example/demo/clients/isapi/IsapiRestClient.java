@@ -73,7 +73,7 @@ public class IsapiRestClient {
     }
 
     public HttpResponse<Path> getFile(File file, String body) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        return doHttpRequestDownload(POST,"/ISAPI/ContentMgmt/download",body,file);
+        return doHttpRequestDownload(GET,"/ISAPI/ContentMgmt/download",body,file);
     }
 
     private String getSearchRequestBodyXml(LocalDateTime fromDate, LocalDateTime toDate, int trackId, int searchResultPosition, int maxResults) throws JsonProcessingException {
@@ -133,28 +133,29 @@ public class IsapiRestClient {
 
         HttpRequest request = buildRequest(requestMethod, path, body,  authHeaderValue);
         HttpResponse<String> response =  HttpClient.newHttpClient()
-                    .send(request, HttpResponse.BodyHandlers.ofString());
+                .send(request, HttpResponse.BodyHandlers.ofString());
         return response;
     }
 
     private  HttpResponse<Path> doHttpRequestWithAuthHeader(String requestMethod, String path, String body, String authHeaderValue,Path file) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 
-      HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
-      HttpRequest request = buildRequest(requestMethod, path, body,  authHeaderValue);
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
+        HttpRequest request = buildRequest(requestMethod, path, body,  authHeaderValue);
+
    /*   In java net Http client we have no data timeout, connectTimeout will not effected , when get success reply from host,
         but if data transfer interrupted, client is freeze, so use async send method to set up timeout*/
-      CompletableFuture<HttpResponse<Path>> response = client.sendAsync(request, HttpResponse.BodyHandlers.ofFile(file));
-      return response.get(60, TimeUnit.MINUTES);
+        CompletableFuture<HttpResponse<Path>> response = client.sendAsync(request, HttpResponse.BodyHandlers.ofFile(file));
+        return response.get(60, TimeUnit.MINUTES);
+
     }
 
     private HttpRequest buildRequest(String requestMethod, String path, String body, String authHeaderValue){
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create("http://" + credention.getServer()+":"+credention.getPort() + path))
                 .timeout(Duration.ofSeconds(2L))
-                .header("Accept", "application/xml");
-        if (requestMethod.equals(POST)) {
-            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
-        }
+                .header("Accept", "application/xml")
+                .header("Content-Type","application/xml")
+                .method(requestMethod,HttpRequest.BodyPublishers.ofString(body));
 
         if (authHeaderValue != null) {
             requestBuilder.header("Authorization", authHeaderValue);

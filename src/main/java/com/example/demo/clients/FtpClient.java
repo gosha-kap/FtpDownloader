@@ -50,11 +50,12 @@ public class FtpClient implements MyClient<FTPFile> {
     public void downLoad() throws IOException {
         List<FTPFile> folders = getFilesFromRoot();
         for (FTPFile folder : folders) {
+            logger.info("Process folder: "+folder.getName()+".");
             if (folder.isDirectory()) {
                 List<FTPFile> files = getFilesFromPath(workDirectory.concat("/").concat(folder.getName()));
                 for (FTPFile file : files) {
-                    logger.info("Process folder: "+file.getName()+".");
-                    downLoadFile(folder.getName(), file);
+                    if (file.getName().endsWith(filePostfix))
+                        downLoadFile(folder.getName(), file);
                 }
             }
         }
@@ -75,10 +76,7 @@ public class FtpClient implements MyClient<FTPFile> {
 
     public void downLoadFile(String proccessFolder, FTPFile pathFile) throws IOException {
 
-        if (!pathFile.getName().endsWith(filePostfix))
-            return;
-
-        File localFolder = new File(saveFolder.concat(proccessFolder));
+        File localFolder = new File(saveFolder.concat("/").concat(proccessFolder));
         File localFile = new File(saveFolder.concat("/").concat(proccessFolder).concat("/").concat(pathFile.getName()));
         String remotePathFile = workDirectory.concat("/").concat(proccessFolder).concat("/").concat(pathFile.getName());
         logger.info("Process file :"+pathFile.getName());
@@ -96,7 +94,6 @@ public class FtpClient implements MyClient<FTPFile> {
             logger.info("File is continued to downloading. Local file size:"+ (int)(length/pathFile.getSize()*100)+"%.");
             ftp.setRestartOffset(length);
         } else {
-
             if (!localFile.createNewFile())
                 logger.error("Can't create file");
 

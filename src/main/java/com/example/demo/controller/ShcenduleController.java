@@ -70,6 +70,7 @@ public class ShcenduleController {
                 ClientType type = (ClientType) dataMap.get("type");
                 Description description = (Description) dataMap.get("description");
                 JobList jobDTO = new JobList(jobKey.getName(), jobKey.getGroup(), description.getAlias(), description.getAddress(), type.toString());
+                String status = getJobStatus(jobKey);
                 LocalDateTime nextFireTime = getTimers(jobKey).values().stream().sorted().findFirst().orElse(null);
                 jobDTO.setLocalDateTime(nextFireTime);
                 jobDTOList.add(jobDTO);
@@ -79,6 +80,13 @@ public class ShcenduleController {
         mav.addObject("jobs", jobDTOList);
         mav.addObject("jobDTO", new JobList());
         return mav;
+    }
+
+    private String getJobStatus(JobKey jobKey) throws SchedulerException {
+        var status = scheduler.getTriggersOfJob(jobKey);
+        if(status.isEmpty())
+            return "NONE";
+        return  scheduler.getTriggerState(status.get(0).getKey()).toString();
     }
 
     @GetMapping("/addJob")
@@ -163,14 +171,16 @@ public class ShcenduleController {
             /* Once time run*/
             if (Objects.nonNull(jobDetailDTO.getOnce())) {
                 if (Objects.nonNull(jobDetailDTO.getFrom()) && Objects.nonNull(jobDetailDTO.getTo())) {
-                    hiWatchSettings.setFrom(jobDetailDTO.getFrom());
-                    hiWatchSettings.setTo(jobDetailDTO.getTo());
+                    LocalDateTime from = jobDetailDTO.isTimeShift() ? jobDetailDTO.getFrom().minusHours(10) : jobDetailDTO.getFrom();
+                    LocalDateTime to = jobDetailDTO.isTimeShift() ? jobDetailDTO.getTo().minusHours(10) : jobDetailDTO.getTo();
+                    hiWatchSettings.setFrom(from);
+                    hiWatchSettings.setTo(to);
                 } else {
                     /* Get last 24 hours */
-                    LocalDateTime timeToexecute = jobDetailDTO.getOnce();
-                    LocalDateTime timeFrom = timeToexecute.minusHours(24);
-                    hiWatchSettings.setFrom(timeFrom);
-                    hiWatchSettings.setTo(timeToexecute);
+                    LocalDateTime to = jobDetailDTO.isTimeShift() ? jobDetailDTO.getOnce().minusHours(10) : jobDetailDTO.getOnce();
+                    LocalDateTime from = to.minusHours(24);
+                    hiWatchSettings.setFrom(from);
+                    hiWatchSettings.setTo(to);
                 }
             }
             /* Regular time run*/
@@ -181,16 +191,14 @@ public class ShcenduleController {
                     timeToexecute = LocalDateTime.of(LocalDate.now(),planned);
                 else
                     timeToexecute = LocalDateTime.of(LocalDate.now().plusDays(1),planned);
-                LocalDateTime timeFrom = timeToexecute.minusHours(24);
-                hiWatchSettings.setFrom(timeToexecute);
-                hiWatchSettings.setTo(timeFrom);
 
-            } else {
-                if (Objects.nonNull(jobDetailDTO.getFrom()) && Objects.nonNull(jobDetailDTO.getTo())) {
-                    hiWatchSettings.setFrom(jobDetailDTO.getFrom());
-                    hiWatchSettings.setTo(jobDetailDTO.getTo());
-                }
+                LocalDateTime to = jobDetailDTO.isTimeShift() ? timeToexecute.minusHours(10) : timeToexecute;
+                LocalDateTime from = to.minusHours(24);
+                hiWatchSettings.setFrom(from);
+                hiWatchSettings.setTo(to);
+
             }
+            hiWatchSettings.setTimeShift(jobDetailDTO.isTimeShift());
             settings = hiWatchSettings;
         } else {
             throw new RuntimeException("Can't recognize type of download job.");
@@ -257,10 +265,7 @@ public class ShcenduleController {
         if (Objects.nonNull(settings)) {
             jobDetail.setSaveFolder(settings.getSaveFolder());
             jobDetail.setNumOfTries(settings.getNumOfTries());
-            // ** We can take values from working Cache, we take from DB **//
-            //TODO//
-            // cache db responces//
-            ExSettings exSettings =  jobRepeatService.getByJobKey(jobKey.toString());
+            ExSettings exSettings = CacheSettings.exist(jobKey.toString()) ? CacheSettings.get(jobKey.toString()) :  jobRepeatService.getByJobKey(jobKey.toString());
             if (Objects.nonNull(exSettings)) {
                 jobDetail.setRepeatLater(exSettings.getRepeatLater());
                 jobDetail.setNextTimeRun(exSettings.getNextTimeRun().intValue());
@@ -276,9 +281,12 @@ public class ShcenduleController {
                 HiWatchSettings hiWatchSettings = (HiWatchSettings) settings;
                 /* No need to check, default value is 101*/
                 jobDetail.setChannel(hiWatchSettings.getChannel());
+                jobDetail.setTimeShift(hiWatchSettings.isTimeShift());
                 if (Objects.nonNull(hiWatchSettings.getFrom()) && Objects.nonNull(hiWatchSettings.getTo())) {
-                    jobDetail.setFrom(hiWatchSettings.getFrom());
-                    jobDetail.setTo(hiWatchSettings.getTo());
+                    LocalDateTime from = hiWatchSettings.isTimeShift() ? hiWatchSettings.getFrom().plusHours(10) : hiWatchSettings.getFrom();
+                    LocalDateTime to = hiWatchSettings.isTimeShift() ? hiWatchSettings.getTo().plusHours(10) : hiWatchSettings.getTo();
+                    jobDetail.setFrom(from);
+                    jobDetail.setTo(to);
                 }
             }
             TelegramCredention telegramSettings = settings.getTelegramCredention();

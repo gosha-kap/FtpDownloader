@@ -56,6 +56,7 @@ public class JobDetailDTO {
     private LocalDateTime from;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime to;
+    private boolean timeShift;
     ///////////////////////
     private String telegramKey;
     private String chatId;

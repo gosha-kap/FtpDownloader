@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Add Job</title>
     <link th:rel="stylesheet" th:href="@{webjars/bootstrap/4.0.0-2/css/bootstrap.min.css} "/>
-    <script src="/js/jquery-3.6.3.min.js"></script>
+
 
 </head>
 <body>
@@ -146,6 +146,7 @@
                     <input type="text" class="form-control" placeholder="Channel "
                            aria-label="Channel" disabled
                            th:field="*{channel}" id="channel">
+
                 </div>
             </div>
 
@@ -189,6 +190,14 @@
                             Regular run
                         </label>
                     </div>
+
+                    <div class="form-check form-check-inline" >
+                    <input class="form-check-input" type="checkbox" value="" th:field="*{timeShift}" id = "timeShift">
+                    <label class="form-check-label" for="timeShift">
+                        Time shifted ( for HiWatch )
+                    </label>
+                    </div>
+
                 </div>
 
             </div>
@@ -229,8 +238,7 @@
 
         <div class="bg-white text-center">
 
-            <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#constatus">Connect</button>
-            <input class="btn btn-info" type="button" value="Files">
+            <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#constatus">Check</button>
             <input class="btn btn-primary" type="submit" value="Save Job">
         </div>
       </form>
@@ -255,8 +263,7 @@
     </div>
 </div>
 
-
-
+<script src="/js/jquery-3.6.3.min.js"></script>
 <script src="/js/actions.js"></script>
 </body>
 </html>

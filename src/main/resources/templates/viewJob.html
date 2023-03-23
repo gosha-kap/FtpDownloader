@@ -35,6 +35,10 @@
             <td th:if="${jobDatail.getType() == 'HiWatch'}" th:text="'Channel: ' + ${jobDatail.getChannel()}"></td>
             <td th:if="${jobDatail.getType() == 'FTP'}" th:text="'File type: ' + ${jobDatail.getFilePostfix()}"></td>
         </tr>
+
+        <tr>
+            <td th:if="${jobDatail.timeShift}" th:text="'Time shifted'"></td>
+        </tr>
         <tr>
             <td th:if="${jobDatail.getType() == 'HiWatch'} and ${jobDatail.getFrom() != null} and ${jobDatail.getTo() != null}"
                 th:text="'From ' + ${#temporals.format(jobDatail.getFrom(), 'dd MMM  HH:mm')}+' to '+${#temporals.format(jobDatail.getTo(), 'dd MMM  HH:mm')}"></td>
