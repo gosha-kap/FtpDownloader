@@ -1,17 +1,15 @@
 package com.example.demo;
 
 
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.clients.FtpClient;
 import com.example.demo.settings.FtpSettings;
 import com.example.demo.clients.MyClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.mockftpserver.fake.FakeFtpServer;
 import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;

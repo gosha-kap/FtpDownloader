@@ -2,8 +2,7 @@ package com.example.demo.clients.factory;
 
 import com.example.demo.clients.FtpClient;
 import com.example.demo.clients.MyClient;
-import com.example.demo.clients.factory.ClientFacroty;
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.settings.Settings;
 
 import java.io.IOException;

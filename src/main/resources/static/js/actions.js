@@ -1,3 +1,6 @@
+$(document).ready(function () {
+
+
 $("#repeatLater").click(function () {
     if ($(this).is(':checked')) {
         $('#nextTimeRun').removeAttr('disabled');
@@ -88,6 +91,41 @@ $("#regularChoice").click(function () {
             $('#to').attr('disabled', 'disabled').val('');
         }
     }
+
+});
+
+$("#check").click(function(){
+
+
+    var checkForm = {};
+    checkForm["ip"] = $("#ip").val();
+    checkForm["post"] = $("#port").val();
+    checkForm["login"] = $("#login").val();
+    checkForm["password"] = $("#password").val();
+    checkForm["type"] = $(".typeCh:checked").val();
+    checkForm["from"] = $("#from").val();
+    checkForm["to"] = $("#to").val();
+    checkForm["timeShift"] = $("#timeShift").attr("checked");
+    checkForm["channel"] = $("#channel").val();
+    checkForm["filePostfix"] = $("#filePostfix").val();
+
+    $.ajax({
+        type: "POST",
+        contentType: "application/json",
+        url: "/check",
+        data: JSON.stringify(checkForm),
+        dataType: 'json',
+        cache: false,
+        timeout: 600000,
+        success: function (data) {
+            alert(JSON.stringify(data, null, 4).toString());
+        },
+        error:function (e){
+            alert(e);
+        }
+    });
+
+});
 
 });
 

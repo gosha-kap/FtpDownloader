@@ -1,8 +1,7 @@
 package com.example.demo.clients;
 
 
-import com.example.demo.Jobs.DownloadJob;
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.settings.FtpSettings;
 import com.example.demo.settings.Settings;
 import org.apache.commons.net.ftp.FTPClient;
@@ -24,6 +23,7 @@ public class FtpClient implements MyClient<FTPFile> {
     private String workDirectory;
     private String filePostfix;
     private static Logger logger = LoggerFactory.getLogger(FtpClient.class);
+
 
     public FtpClient(Credention credention, Settings settings) throws IOException {
         this.credention = credention;
@@ -60,6 +60,14 @@ public class FtpClient implements MyClient<FTPFile> {
             }
         }
     }
+
+    @Override
+    public List<String> check() throws IOException {
+        connect();
+
+        return null;
+    }
+
     public List<FTPFile> getFilesFromPath(String dir) {
         FTPFile[] files;
         try {

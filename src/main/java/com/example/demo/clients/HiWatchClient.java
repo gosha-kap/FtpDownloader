@@ -2,7 +2,7 @@ package com.example.demo.clients;
 
 import com.example.demo.clients.isapi.IsapiRestClient;
 import com.example.demo.clients.isapi.Model;
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.settings.HiWatchSettings;
 import com.example.demo.settings.Settings;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,17 +10,19 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 
 public class HiWatchClient implements MyClient {
 
@@ -33,6 +35,7 @@ public class HiWatchClient implements MyClient {
     private final long ADD_HEADER = 40L;
 
     Logger logger = LoggerFactory.getLogger(HiWatchClient.class);
+
 
     public HiWatchClient(Credention credention, Settings settings) {
 
@@ -52,8 +55,11 @@ public class HiWatchClient implements MyClient {
 
         List<Model.SearchMatchItem> videos;
         try {
-
-            videos = restClient.searchMedia(settings.getFrom(), settings.getTo(), settings.getChannel());
+            LocalDateTime to = (Objects.nonNull(settings.getTo())) ? settings.getTo() : LocalDateTime.now();
+            if(settings.isTimeShift())
+                to = to.minusHours(10);
+            LocalDateTime from = to.minusHours(24);
+            videos = restClient.searchMedia(from, to, settings.getChannel());
             logger.info("Get List of record from:"+host+". Found "+ videos.size()+" record(s).");
         } catch (InterruptedException e) {
             throw new RuntimeException("Error getting data from host");
@@ -127,7 +133,10 @@ public class HiWatchClient implements MyClient {
                 throw new IllegalArgumentException("Error parsing record meta data");
             }
         }
+    }
 
-
+    @Override
+    public List<String> check() {
+        return getFilesFromRoot();
     }
 }

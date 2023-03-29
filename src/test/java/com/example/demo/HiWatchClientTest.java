@@ -2,9 +2,8 @@ package com.example.demo;
 
 import com.example.demo.clients.HiWatchClient;
 import com.example.demo.clients.MyClient;
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.settings.HiWatchSettings;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class HiWatchClientTest {

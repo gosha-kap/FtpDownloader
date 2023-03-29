@@ -1,14 +1,19 @@
 package com.example.demo.controller;
 
 import com.example.demo.Jobs.DownloadJob;
-import com.example.demo.clients.ClientType;
+import com.example.demo.model.ClientType;
+import com.example.demo.clients.MyClient;
+import com.example.demo.clients.factory.ClientFacroty;
+import com.example.demo.dto.CheckConnection;
 import com.example.demo.dto.JobList;
 import com.example.demo.dto.JobDetailDTO;
-import com.example.demo.entity.ExSettings;
+import com.example.demo.model.ExSettings;
+import com.example.demo.model.Credention;
 import com.example.demo.model.Description;
 import com.example.demo.service.JobRepeatService;
 import com.example.demo.settings.*;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -16,14 +21,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 
+import java.io.IOException;
 import java.time.*;
 import java.util.*;
 
+import static com.example.demo.Jobs.DownloadJob.createClientByType;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobKey.jobKey;
 import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
@@ -84,9 +92,9 @@ public class ShcenduleController {
 
     private String getJobStatus(JobKey jobKey) throws SchedulerException {
         var status = scheduler.getTriggersOfJob(jobKey);
-        if(status.isEmpty())
+        if (status.isEmpty())
             return "NONE";
-        return  scheduler.getTriggerState(status.get(0).getKey()).toString();
+        return scheduler.getTriggerState(status.get(0).getKey()).toString();
     }
 
     @GetMapping("/addJob")
@@ -131,6 +139,39 @@ public class ShcenduleController {
         return "redirect:/schendule";
     }
 
+    /* TODO*/
+    /*make spring instead of shit code*/
+    @PostMapping(value = "/check")
+    public List<String> checkParametrs(@Valid @RequestBody CheckConnection loginForm, Errors errors) {
+        ClientType type = ClientType.valueOf(loginForm.getType());
+        int port = (Objects.isNull(loginForm.getPort())) ? type.getPort() : loginForm.getPort();
+        int channel = (Objects.isNull(loginForm.getChannel())) ? 101 : loginForm.getChannel();
+        ClientFacroty clientFacroty = createClientByType(ClientType.valueOf(loginForm.getType()));
+        Credention credention = new Credention(loginForm.getIp(), port, loginForm.getLogin(), loginForm.getPassword());
+        Settings settings = null;
+        if (type.equals(ClientType.HiWatch)) {
+            if (Objects.nonNull(loginForm.getFrom()) && Objects.nonNull(loginForm.getTo())) {
+                settings = new HiWatchSettings(channel,loginForm.getFrom(),loginForm.getTo(),loginForm.isTimeShift());
+            }
+            else
+                settings = new HiWatchSettings(channel,loginForm.isTimeShift());
+        } else if (type.equals(ClientType.FTP)) {
+                String filePostFix = Objects.isNull(loginForm.getFilePostfix()) ? "" : loginForm.getFilePostfix();
+                settings = new FtpSettings(filePostFix);
+        }
+
+        try {
+            MyClient client = clientFacroty.createClient(credention, settings);
+            return   client.check();
+
+        } catch (IOException e) {
+            List<String> err = new ArrayList<>();
+            err.add(e.getMessage());
+            return err;
+        }
+
+    }
+
     private JobDetail buildJob(JobDetailDTO jobDetailDTO) throws SchedulerException {
         JobKey jobKey = new JobKey(jobDetailDTO.getAlias(), jobDetailDTO.getType());
         JobDataMap jobDataMap = buildJobDataMap(jobDetailDTO, jobKey);
@@ -158,9 +199,9 @@ public class ShcenduleController {
         /////// Create settings by DTO values//////
         Settings settings;
         // Fill FTP Setting ///
-        if ( type.equals(ClientType.FTP)) {
+        if (type.equals(ClientType.FTP)) {
             FtpSettings ftpSettings = new FtpSettings();
-            ftpSettings.setDataTimeOut( Objects.nonNull(jobDetailDTO.getDataTimeOut()) ? jobDetailDTO.getDataTimeOut() : 0 );
+            ftpSettings.setDataTimeOut(Objects.nonNull(jobDetailDTO.getDataTimeOut()) ? jobDetailDTO.getDataTimeOut() : 0);
             ftpSettings.setFilePostfix(Objects.nonNull(jobDetailDTO.getFilePostfix()) ? jobDetailDTO.getFilePostfix() : "");
             settings = ftpSettings;
             // Fill HiWatch Setting ///
@@ -184,19 +225,8 @@ public class ShcenduleController {
                 }
             }
             /* Regular time run*/
-            else if (Objects.nonNull(jobDetailDTO.getRegular()))  {
-                LocalDateTime timeToexecute;
-                LocalTime planned = jobDetailDTO.getRegular();
-                if(planned.isAfter(LocalTime.now()))
-                    timeToexecute = LocalDateTime.of(LocalDate.now(),planned);
-                else
-                    timeToexecute = LocalDateTime.of(LocalDate.now().plusDays(1),planned);
-
-                LocalDateTime to = jobDetailDTO.isTimeShift() ? timeToexecute.minusHours(10) : timeToexecute;
-                LocalDateTime from = to.minusHours(24);
-                hiWatchSettings.setFrom(from);
-                hiWatchSettings.setTo(to);
-
+            else if (Objects.nonNull(jobDetailDTO.getRegular())) {
+                /* in regular task takes last 24 hours period in executing job */
             }
             hiWatchSettings.setTimeShift(jobDetailDTO.isTimeShift());
             settings = hiWatchSettings;
@@ -210,7 +240,7 @@ public class ShcenduleController {
         else
             settings.setNumOfTries(1);
         //* Save repeat settings in db , because jobmap can be change between tries*//
-        if (jobDetailDTO.isRepeatLater() && Objects.nonNull(jobDetailDTO.getNextTimeRun()) && Objects.nonNull(jobDetailDTO.getNumOfRepeats())  ) {
+        if (jobDetailDTO.isRepeatLater() && Objects.nonNull(jobDetailDTO.getNextTimeRun()) && Objects.nonNull(jobDetailDTO.getNumOfRepeats())) {
             ExSettings exSettings = new ExSettings(jobKey.toString(),
                     true, Long.valueOf(jobDetailDTO.getNextTimeRun()), jobDetailDTO.getNumOfRepeats());
             CacheSettings.save(jobRepeatService.save(exSettings));
@@ -265,7 +295,7 @@ public class ShcenduleController {
         if (Objects.nonNull(settings)) {
             jobDetail.setSaveFolder(settings.getSaveFolder());
             jobDetail.setNumOfTries(settings.getNumOfTries());
-            ExSettings exSettings = CacheSettings.exist(jobKey.toString()) ? CacheSettings.get(jobKey.toString()) :  jobRepeatService.getByJobKey(jobKey.toString());
+            ExSettings exSettings = CacheSettings.exist(jobKey.toString()) ? CacheSettings.get(jobKey.toString()) : jobRepeatService.getByJobKey(jobKey.toString());
             if (Objects.nonNull(exSettings)) {
                 jobDetail.setRepeatLater(exSettings.getRepeatLater());
                 jobDetail.setNextTimeRun(exSettings.getNextTimeRun().intValue());
@@ -318,6 +348,7 @@ public class ShcenduleController {
                 .withSchedule(cronScheduleBuilder)
                 .build();
     }
+
     private Map<String, LocalDateTime> getTimers(JobKey jobKey) throws SchedulerException {
         Map<String, LocalDateTime> timers = new HashMap<>();
         List<Trigger> triggers = getAllTriggersKey(jobKey);
@@ -331,6 +362,7 @@ public class ShcenduleController {
         });
         return timers;
     }
+
     private List<Trigger> getAllTriggersKey(JobKey jobKey) throws SchedulerException {
         return (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
     }

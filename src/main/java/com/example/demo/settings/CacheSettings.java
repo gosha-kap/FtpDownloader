@@ -1,6 +1,6 @@
 package com.example.demo.settings;
 
-import com.example.demo.entity.ExSettings;
+import com.example.demo.model.ExSettings;
 
 import java.util.Map;
 import java.util.Objects;

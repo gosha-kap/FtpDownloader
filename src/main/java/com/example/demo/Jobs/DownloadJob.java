@@ -5,7 +5,9 @@ import com.example.demo.clients.*;
 import com.example.demo.clients.factory.ClientFacroty;
 import com.example.demo.clients.factory.FtpClientFactory;
 import com.example.demo.clients.factory.HiWatchClientFactory;
-import com.example.demo.entity.ExSettings;
+import com.example.demo.model.ExSettings;
+import com.example.demo.model.ClientType;
+import com.example.demo.model.Credention;
 import com.example.demo.model.Description;
 import com.example.demo.service.JobRepeatService;
 import com.example.demo.settings.*;
@@ -100,7 +102,7 @@ public class DownloadJob extends QuartzJobBean implements InterruptableJob {
         }
     }
 
-     static ClientFacroty createClientByType(ClientType clientType){
+     public static ClientFacroty createClientByType(ClientType clientType){
         if(clientType.equals(ClientType.FTP)){
             return  new FtpClientFactory();
         }

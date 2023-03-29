@@ -2,7 +2,7 @@
 
 package com.example.demo.clients.isapi;
 
-import com.example.demo.settings.Credention;
+import com.example.demo.model.Credention;
 import com.example.demo.settings.HiWatchSettings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;

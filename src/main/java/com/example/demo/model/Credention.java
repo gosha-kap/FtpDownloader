@@ -1,7 +1,8 @@
-package com.example.demo.settings;
+package com.example.demo.model;
 
 
 import lombok.Data;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
@@ -18,5 +19,12 @@ public  class Credention implements Serializable
         this.user = user;
         this.password = password;
         }
+
+    public Credention(String server, int port, String user, String password) {
+        this.server = server;
+        this.port = port;
+        this.user = user;
+        this.password = password;
+    }
 }
 

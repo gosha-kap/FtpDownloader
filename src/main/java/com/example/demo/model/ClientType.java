@@ -1,4 +1,4 @@
-package com.example.demo.clients;
+package com.example.demo.model;
 
 import com.example.demo.settings.FtpSettings;
 

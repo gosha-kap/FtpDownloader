@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.ExSettings;
+import com.example.demo.model.ExSettings;
 import com.example.demo.entity.SettingsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.model.ExSettings;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
