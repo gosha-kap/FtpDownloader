@@ -17,7 +17,7 @@
             <td th:text="'Alias: '+${jobDatail.getAlias()}"></td>
         </tr>
         <tr>
-            <td th:text="'Address: '+${jobDatail.getAddress()}"></td>
+            <td th:text="'Address: '+${jobDatail.getNote()}"></td>
         </tr>
         <tr>
             <th class="text-left">Credentials</th>
@@ -80,16 +80,14 @@
         <tr>
             <td>
                 <form action="#" th:action="@{/editJob}" th:object="${jobDTO}" method="post">
-                    <input type="hidden" th:value="${jobDatail.getJobName()}" name="jobName">
-                    <input type="hidden" th:value="${jobDatail.getJobGroup()}" name="jobGroup">
+                    <input type="hidden" th:value="${jobDatail.getJobKey()}" name="jobKey">
                     <button type="submit" class="btn btn-success">Edit</button>
                 </form>
             </td>
             <td>
 
                 <form action="#" th:action="@{/delJob}" th:object="${jobDTO}" method="post">
-                    <input type="hidden" th:value="${jobDatail.getJobName()}" name="jobName">
-                    <input type="hidden" th:value="${jobDatail.getJobGroup()}" name="jobGroup">
+                    <input type="hidden" th:value="${jobDatail.getJobKey()}" name="jobKey">
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </td>

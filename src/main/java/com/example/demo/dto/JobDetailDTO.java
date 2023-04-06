@@ -30,21 +30,20 @@ public class JobDetailDTO {
     @NotNull
     private String alias;
     @NotNull
-    private String address;
+    private String note;
     /////////////////////
     @NotNull
-    private String jobName;
-    @NotNull
-    private String jobGroup;
+    private String jobKey;
+
     //////Common Settings//
     @NotNull
     private String type;
     @NotNull
     private String saveFolder;
-    private Integer numOfTries;
+    private int numOfTries;
     private boolean repeatLater;
-    private Integer nextTimeRun;
-    private Integer numOfRepeats;
+    private long nextTimeRun;
+    private int numOfRepeats;
     ///////FTP/////////////
     private Integer dataTimeOut;
     private String filePostfix;

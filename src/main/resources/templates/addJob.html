@@ -14,8 +14,8 @@
 <body>
 
 <!--Modal-->
-<div class="modal fade" id="constatus" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade bd-example-modal-lg" id="constatus" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Checking...</h5>
@@ -24,7 +24,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>Unknown.</p>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
@@ -33,10 +33,10 @@
     </div>
 </div>
 <div class="container">
-    <form action="#" th:action="@{/schendule}" th:object="${jobDetailDTO}" method="post">
+    <form action="#" th:action="@{/jobs}" th:object="${jobDetailDTO}" method="post">
 
-        <input type="hidden" th:value="${jobDetailDTO.jobName}" name="jobName">
-        <input type="hidden" th:value="${jobDetailDTO.jobGroup}" name="jobGroup">
+        <input type="hidden" th:value="${jobDetailDTO.jobKey}" name="jobKey">
+
 
         <!--Description-->
         <div class="p-2 bg-light border m-2">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="col">
                     <input type="text" class="form-control" placeholder="Address" aria-label="Address"
-                           th:field="*{address}" id="address">
+                           th:field="*{note}" id="note">
                 </div>
             </div>
         </div>

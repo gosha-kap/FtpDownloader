@@ -21,13 +21,12 @@
         <tr th:each="job : ${jobs}">
 
 
-            <td th:text="${job.description}+', '+${job.address}+', '+${job.type}+' type.'" ></td>
+            <td th:text="${job.alias}+', '+${job.note}+', '+${job.type}+' type.'" ></td>
             <td th:text="${#temporals.format(job.localDateTime, 'dd MMM  HH:mm')}"></td>
             <td>
 
                 <form action="#" th:action="@{/viewJob}" th:object="${jobDTO}" method="post">
-                    <input type="hidden" th:value="${job.jobName}" name="jobName">
-                    <input type="hidden" th:value="${job.jobGroup}" name="jobGroup">
+                    <input type="hidden" th:value="${job.jobKey}" name="jobKey">
                     <button type="submit" class="btn btn-info">View details</button>
                 </form>
 

@@ -1,16 +1,16 @@
 package com.example.demo.clients;
 
+import com.example.demo.dto.CheckResponse;
+import com.example.demo.entity.ClientType;
+import com.example.demo.entity.Credention;
+
 import java.io.IOException;
-import java.util.List;
 
 
-public interface MyClient<T> {
+public interface MyClient {
+     void downLoad(Credention credention,String saveFolder, Object settings ) throws IOException;
+     ClientType getType();
 
-    void connect() throws IOException;
+     CheckResponse check(Credention credention ,Object settings);
 
-    List<T> getFilesFromRoot();
-
-    void close() throws IOException;
-    void downLoad() throws IOException;
-    List<String> check() throws IOException;
 }

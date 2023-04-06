@@ -2,11 +2,7 @@ package com.example.demo.dto;
 
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,28 +10,21 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 public class JobList {
 
     @NotNull
-    private String jobName;
+    private String jobKey;
+     @NotNull
+    private String alias;
     @NotNull
-    private String jobGroup;
-    @NotNull
-    private String description;
-    @NotNull
-    private String address;
+    private String note;
     @NotNull
     private String type;
-
+    @NotNull
+    private String status;
 
     private LocalDateTime localDateTime;
 
 
-    public JobList(String jobName, String jobGroup, String description, String address, String type) {
-        this.jobName = jobName;
-        this.jobGroup = jobGroup;
-        this.description = description;
-        this.address = address;
-        this.type = type;
-    }
 }

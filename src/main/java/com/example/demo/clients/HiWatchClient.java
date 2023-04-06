@@ -1,66 +1,54 @@
 package com.example.demo.clients;
 
+import com.example.demo.Utils.Utils;
 import com.example.demo.clients.isapi.IsapiRestClient;
 import com.example.demo.clients.isapi.Model;
-import com.example.demo.model.Credention;
-import com.example.demo.settings.HiWatchSettings;
-import com.example.demo.settings.Settings;
+import com.example.demo.dto.CheckResponse;
+import com.example.demo.dto.CheckStatus;
+import com.example.demo.entity.ClientType;
+import com.example.demo.entity.Credention;
+import com.example.demo.entity.HiWatchSettings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
+@Component
+@Slf4j
 public class HiWatchClient implements MyClient {
 
-    private HiWatchSettings settings;
-    private String saveFolder;
     private IsapiRestClient restClient;
-
-    private String host;
 
     private final long ADD_HEADER = 40L;
 
-    Logger logger = LoggerFactory.getLogger(HiWatchClient.class);
-
-
-    public HiWatchClient(Credention credention, Settings settings) {
-
-        this.settings = (HiWatchSettings) settings;
-        this.saveFolder = settings.getSaveFolder();
-        this.restClient = new IsapiRestClient(credention, this.settings);
-        this.host = credention.getServer();
+    @Autowired
+    public HiWatchClient(IsapiRestClient restClient) {
+      this.restClient = restClient;
     }
 
-    @Override
-    public void connect() throws IOException {
-        //Using login check//
-    }
 
-    @Override
-    public List<String> getFilesFromRoot() {
+    public List<String> getFilesFromRoot(Credention credention, HiWatchSettings settings) {
 
         List<Model.SearchMatchItem> videos;
         try {
-            LocalDateTime to = (Objects.nonNull(settings.getTo())) ? settings.getTo() : LocalDateTime.now();
-            if(settings.isTimeShift())
-                to = to.minusHours(10);
-            LocalDateTime from = to.minusHours(24);
-            videos = restClient.searchMedia(from, to, settings.getChannel());
-            logger.info("Get List of record from:"+host+". Found "+ videos.size()+" record(s).");
+            videos = restClient.searchMedia(credention,settings);
+            log.info("Get List of record from:"+credention.getServer()+":"+credention.getPort()+". Found "+ videos.size()+" record(s).");
         } catch (InterruptedException e) {
             throw new RuntimeException("Error getting data from host");
         } catch (IOException e) {
@@ -85,18 +73,22 @@ public class HiWatchClient implements MyClient {
     }
 
     @Override
-    public void close() throws IOException {
-    }
-
-    @Override
-    public void downLoad() throws IOException {
+    public  void downLoad(Credention credention, String saveFolder ,Object settings) throws IOException {
+        HiWatchSettings hiWatchSettings = null;
+        try{
+            hiWatchSettings = (HiWatchSettings)settings;
+        }
+        catch (ClassCastException e){
+            log.error("Can't get Hiwatch Settings");
+            throw  new RuntimeException("Can't get Hiwatch Settings");
+        }
+        List<String> xmlListOfRecords = getFilesFromRoot(credention,hiWatchSettings);
         Pattern pattern = Pattern.compile("starttime=(\\d{8})T(\\d{6})Z.*name=(.*)&.*size=(\\d*)");
-        List<String> xmlListOfRecords = getFilesFromRoot();
         for (String xmlRequest : xmlListOfRecords) {
             Matcher matcher = pattern.matcher(xmlRequest);
             if (matcher.find()) {
                 String date = matcher.group(1);
-                 Long size = Long.parseLong(matcher.group(4))+ ADD_HEADER;
+                Long size = Long.parseLong(matcher.group(4))+ ADD_HEADER;
                 String folderName = date.substring(0, 4) + "-" + date.substring(4, 6) + "-" + date.substring(6, 8);
                 String fileName = matcher.group(3);
                 File localFolder = new File(saveFolder.concat("/").concat(folderName));
@@ -106,7 +98,7 @@ public class HiWatchClient implements MyClient {
                 boolean exists = localFile.exists();
                 long length = localFile.length() ;
                 if (exists && length == size) {
-                    logger.info("File: "+ fileName+" is exist, size: "+length);
+                    log.info("File: "+ fileName+" is exist, size: "+length);
                     continue;
                 } else if (exists) {
                     localFile.delete();
@@ -115,8 +107,8 @@ public class HiWatchClient implements MyClient {
                         throw new RuntimeException("Can't create file");
                 }
                 try {
-                    logger.info("Get file:"+localFile);
-                    HttpResponse<Path> result = restClient.getFile(localFile, xmlRequest);
+                    log.info("Get file:"+localFile);
+                    HttpResponse<Path> result = restClient.getFile(localFile, xmlRequest,credention);
                     if (result.statusCode() != 200) {
                         throw new RuntimeException("Error in response code:" + result.statusCode());
                     }
@@ -136,7 +128,42 @@ public class HiWatchClient implements MyClient {
     }
 
     @Override
-    public List<String> check() {
-        return getFilesFromRoot();
+    public ClientType getType() {
+        return ClientType.HiWatch;
     }
+
+    @Override
+    public CheckResponse check(Credention credention , Object settings) {
+        CheckResponse checkResponse = new CheckResponse();
+        HiWatchSettings hiWatchSettings = null;
+        try{
+            hiWatchSettings = (HiWatchSettings)settings;
+        }
+        catch (ClassCastException e){
+            log.error("Can't get Hiwatch Settings");
+            checkResponse.setCheckStatus(CheckStatus.ERROR);
+            checkResponse.setMessadge("Can't get Hiwatch Settings");
+            return checkResponse;
+
+        }
+        List<String> xmlListOfRecords = null;
+        try{
+            xmlListOfRecords = getFilesFromRoot(credention,hiWatchSettings);
+            checkResponse.setRecords(Utils.convertXml(xmlListOfRecords));
+            checkResponse.setCheckStatus(CheckStatus.OK);
+            return checkResponse;
+
+        }
+        catch(Exception e) {
+            log.error("Error to parse xml list to string");
+            checkResponse.setMessadge(e.getMessage());
+            checkResponse.setCheckStatus(CheckStatus.ERROR);
+            return checkResponse;
+        }
+
+
+
+    }
+
+
 }

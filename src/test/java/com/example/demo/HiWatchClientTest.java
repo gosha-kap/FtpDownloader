@@ -1,58 +1,70 @@
 package com.example.demo;
 
-import com.example.demo.clients.HiWatchClient;
 import com.example.demo.clients.MyClient;
-import com.example.demo.model.Credention;
-import com.example.demo.settings.HiWatchSettings;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.example.demo.clients.factory.MyClientFactory;
+import com.example.demo.dto.CheckResponse;
+import com.example.demo.entity.*;
+import com.example.demo.repository.DownloadJobJpa;
+import com.example.demo.service.HIWatchService;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
 public class HiWatchClientTest {
-    private MyClient myClient;
+    @Autowired
+    MyClientFactory myClientFactory;
 
-    @BeforeEach
-    public void setup() throws IOException {
+    @Autowired
+    DownloadJobJpa downloadJobJpa;
+
+    @Autowired
+    HIWatchService hiWatchService;
+
+    @Test
+    public void download() throws IOException {
 
         Credention credention = new Credention("192.168.100.16", "admin", "Gosh@183");
         credention.setPort(80);
         HiWatchSettings settings = new HiWatchSettings();
-        settings.setSaveFolder(TestData.saveFolder);
         settings.setChannel(201);
-        settings.setFrom(LocalDateTime.now().minusHours(24));
-        settings.setTo(LocalDateTime.now());
         settings.setSearchMaxResult(50);
-        myClient = new HiWatchClient(credention, settings);
+        settings.setSearchResultPosition(0);
+        settings.setTimeShift(true);
+        MyClient client = myClientFactory.getService(ClientType.HiWatch);
+        CheckResponse response = client.check(credention,settings);
+        System.out.println("----------------------------");
+        for (String xml : response.getRecords())
+            System.out.println(xml);
+        System.out.println("----------------------------");
     }
 
     @Test
-    public void getListOfRecords() throws IOException {
-        List<String> list = myClient.getFilesFromRoot();
-        for (String str : list) {
-            Pattern pattern = Pattern.compile("starttime=(\\d{8})T(\\d{6})Z.*name=(\\d*).*size=(\\d*)");
-            Matcher matcher = pattern.matcher(str);
-            if (matcher.find()) {
-                String date = matcher.group(1);
-                String time = matcher.group(2);
-                String name = matcher.group(3);
-                String size = matcher.group(4);
-                String folderName = date.substring(0, 4) + "-" + date.substring(4, 6) + "-" + date.substring(6, 8);
-                System.out.println(date + "-" + time + ":" + size);
-                System.out.println("file :"+name);
-            }
-        }
+    public void save() throws IOException{
+        Credention credention = new Credention("10.1.1.1","user","Pass");
+        HiWatchSettings settings = new HiWatchSettings();
+        settings.setTimeShift(true);
+        DownloadSettings downloadSettings = new DownloadSettings();
+        downloadSettings.setSaveFolder(TestData.saveFolder);
+        JobDetailEntity jobDetail = new JobDetailEntity();
+        jobDetail.setAlias("Test");
+        jobDetail.setType(ClientType.HiWatch);
+        DownloadJobEntity downloadJobEntity = new DownloadJobEntity();
+        downloadJobEntity.setJobKey("TEST_KEY");
+        downloadJobEntity.setDownloadSettings(downloadSettings);
+        downloadJobEntity.setCredention(credention);
+        downloadJobEntity.setHiWatchSettings(settings);
+        downloadJobEntity.setJobDetailEntity(jobDetail);
+        downloadJobJpa.save(downloadJobEntity);
+        System.out.println();
+
     }
 
-    @Test
-    public void getListOfRecordsNo() throws IOException {
-       myClient.downLoad();
-    }
+
 
 }

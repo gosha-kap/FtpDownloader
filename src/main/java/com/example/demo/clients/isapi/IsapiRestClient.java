@@ -2,14 +2,14 @@
 
 package com.example.demo.clients.isapi;
 
-import com.example.demo.model.Credention;
-import com.example.demo.settings.HiWatchSettings;
+import com.example.demo.entity.Credention;
+import com.example.demo.entity.HiWatchSettings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 
 import java.io.File;
@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,35 +33,32 @@ import static com.example.demo.clients.isapi.DateConverter.dateToApiString;
 
 @Getter
 @RequiredArgsConstructor
+@Component
+@Slf4j
 public class IsapiRestClient {
-
     private static final String GET = "GET";
     private static final String POST = "POST";
     private static final XmlMapper xmlMapper = new XmlMapper();
-    private Credention credention;
-    private final int channalID;
-    private final int maxResults;
-    private int searchResultPosition = 0;
 
-    Logger logger = LoggerFactory.getLogger(IsapiRestClient.class);
+    public List<Model.SearchMatchItem> searchMedia(Credention credention,HiWatchSettings settings) throws IOException, InterruptedException {
 
-    public IsapiRestClient(Credention credention, HiWatchSettings settings) {
-        this.credention = credention;
-        this.channalID = settings.getChannel();
-        this.maxResults = settings.getSearchMaxResult();
-    }
-
-    public List<Model.SearchMatchItem> searchMedia(LocalDateTime fromDate, LocalDateTime toDate, int trackId) throws IOException, InterruptedException {
+        LocalDateTime to = (Objects.nonNull(settings.getToTime())) ? settings.getToTime() : LocalDateTime.now();
+        LocalDateTime from = (Objects.nonNull(settings.getToTime())) ? settings.getFromTime() : to.minusHours(24);
+        if(settings.isTimeShift()){
+            to = to.minusHours(10);
+            from = from.minusHours(10);
+        }
         List<Model.SearchMatchItem> allResults = new LinkedList<>();
         Model.CMSearchResult searchResult;
-
-
+        int searchResultPosition = settings.getSearchResultPosition();
+        int maxResults = settings.getSearchMaxResult();
         do {
             searchResult = doHttpRequest(
                     POST,
                     "/ISAPI/ContentMgmt/search",
-                    getSearchRequestBodyXml(fromDate, toDate, trackId, searchResultPosition, maxResults),
-                    Model.CMSearchResult.class
+                    getSearchRequestBodyXml(from, to, settings.getChannel(), searchResultPosition, maxResults),
+                    Model.CMSearchResult.class,
+                    credention
             );
             List<Model.SearchMatchItem> matches = searchResult.getMatchList();
             if (matches != null) {
@@ -72,14 +70,13 @@ public class IsapiRestClient {
         return allResults;
     }
 
-    public HttpResponse<Path> getFile(File file, String body) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        return doHttpRequestDownload(GET,"/ISAPI/ContentMgmt/download",body,file);
+    public HttpResponse<Path> getFile(File file, String body,Credention credention) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        return doHttpRequestDownload(GET,"/ISAPI/ContentMgmt/download",body,file,credention);
     }
 
     private String getSearchRequestBodyXml(LocalDateTime fromDate, LocalDateTime toDate, int trackId, int searchResultPosition, int maxResults) throws JsonProcessingException {
 
         String result = xmlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(
-
                 Model.CMSearchDescription.builder()
                         .maxResults(maxResults)
                         .searchResultPosition(searchResultPosition)
@@ -94,14 +91,14 @@ public class IsapiRestClient {
         return  result;
     }
 
-    private HttpResponse<Path> doHttpRequestDownload(String requestMethod, String requestPath, String body, File file) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        String authorizationHeaderValue = getaAthorizationHeaderValue(requestMethod,requestPath,body);
-        return doHttpRequestWithAuthHeader(requestMethod, requestPath, body, authorizationHeaderValue,file.toPath());
+    private HttpResponse<Path> doHttpRequestDownload(String requestMethod, String requestPath, String body, File file ,Credention credention) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        String authorizationHeaderValue = getaAthorizationHeaderValue(requestMethod,requestPath,body, credention);
+        return doHttpRequestWithAuthHeader(requestMethod, requestPath, body, authorizationHeaderValue,file.toPath(),credention);
     }
-    private <T> T doHttpRequest(String requestMethod, String requestPath, String body, Class<T> resultClass) throws IOException, InterruptedException {
+    private <T> T doHttpRequest(String requestMethod, String requestPath, String body, Class<T> resultClass, Credention credention) throws IOException, InterruptedException {
 
-        String authorizationHeaderValue = getaAthorizationHeaderValue(requestMethod,requestPath,body);
-        HttpResponse<String> response = doHttpRequestWithAuthHeader(requestMethod, requestPath, body, authorizationHeaderValue);
+        String authorizationHeaderValue = getaAthorizationHeaderValue(requestMethod,requestPath,body,credention);
+        HttpResponse<String> response = doHttpRequestWithAuthHeader(requestMethod, requestPath, body, authorizationHeaderValue,credention);
 
         if (response.statusCode() == 401) {
             throw new RuntimeException("Could not authenticate. Wrong username or password?");
@@ -118,8 +115,8 @@ public class IsapiRestClient {
     }
 
 
-    private String getaAthorizationHeaderValue(String requestMethod, String requestPath, String body) throws IOException, InterruptedException {
-        HttpResponse<String> unauthorizedResponse = doHttpRequestWithAuthHeader(requestMethod, requestPath, body, null);
+    private String getaAthorizationHeaderValue(String requestMethod, String requestPath, String body, Credention credention) throws IOException, InterruptedException {
+        HttpResponse<String> unauthorizedResponse = doHttpRequestWithAuthHeader(requestMethod, requestPath, body, null,credention);
         if (unauthorizedResponse.statusCode() != 401) {
             throw new RuntimeException("Expected to get a 401 digest auth challenge response but didn't");
         }
@@ -129,18 +126,18 @@ public class IsapiRestClient {
     }
 
 
-    private  HttpResponse<String> doHttpRequestWithAuthHeader(String requestMethod, String path, String body, String authHeaderValue) throws IOException, InterruptedException {
+    private  HttpResponse<String> doHttpRequestWithAuthHeader(String requestMethod, String path, String body, String authHeaderValue,Credention credention) throws IOException, InterruptedException {
 
-        HttpRequest request = buildRequest(requestMethod, path, body,  authHeaderValue);
+        HttpRequest request = buildRequest(requestMethod, path, body,authHeaderValue,credention);
         HttpResponse<String> response =  HttpClient.newHttpClient()
                 .send(request, HttpResponse.BodyHandlers.ofString());
         return response;
     }
 
-    private  HttpResponse<Path> doHttpRequestWithAuthHeader(String requestMethod, String path, String body, String authHeaderValue,Path file) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    private  HttpResponse<Path> doHttpRequestWithAuthHeader(String requestMethod, String path, String body, String authHeaderValue,Path file, Credention credention) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
-        HttpRequest request = buildRequest(requestMethod, path, body,  authHeaderValue);
+        HttpRequest request = buildRequest(requestMethod, path, body,authHeaderValue,credention);
 
    /*   In java net Http client we have no data timeout, connectTimeout will not effected , when get success reply from host,
         but if data transfer interrupted, client is freeze, so use async send method to set up timeout*/
@@ -149,7 +146,7 @@ public class IsapiRestClient {
 
     }
 
-    private HttpRequest buildRequest(String requestMethod, String path, String body, String authHeaderValue){
+    private HttpRequest buildRequest(String requestMethod, String path, String body, String authHeaderValue,Credention credention){
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create("http://" + credention.getServer()+":"+credention.getPort() + path))
                 .timeout(Duration.ofSeconds(2L))

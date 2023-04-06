@@ -1,6 +1,4 @@
-package com.example.demo.model;
-
-import com.example.demo.settings.FtpSettings;
+package com.example.demo.entity;
 
 import java.io.Serializable;
 

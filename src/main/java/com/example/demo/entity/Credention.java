@@ -1,16 +1,22 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
 
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.stereotype.Component;
-
-import java.io.Serializable;
+import lombok.NoArgsConstructor;
 
 @Data
-public  class Credention implements Serializable
+@Entity
+@NoArgsConstructor
+public  class Credention
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
     private  String server;
     private  int port;
+    @Column(name = "login")
     private  String user;
     private  String password;
 
